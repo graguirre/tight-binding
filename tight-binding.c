@@ -3,7 +3,7 @@
  * Tight-binding model for lead and Pt chain.
  * 
  * Gonzalo Aguirre <graguire@gmail.com>
- *
+ * Original idea: G. Chiappe
  */
 
 
