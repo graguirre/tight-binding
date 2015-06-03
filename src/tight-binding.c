@@ -170,29 +170,48 @@ double 	**M, // XYZ coordinates
 	/* operador Lz */
 //	gsl_complex z = gsl_complex_rect(0,1); /* i */
 	gsl_matrix_complex * Lz = gsl_matrix_complex_alloc(6,6); // operador Lz
-	gsl_matrix_complex * Lm = gsl_matrix_complex_alloc(6,6); // operador L-
-	gsl_matrix_complex * Lp = gsl_matrix_complex_alloc(6,6); // operador L+
 	gsl_matrix_complex_set_all(Lz, GSL_COMPLEX_ZERO); // inicializo
-	gsl_matrix_complex_set_all(Lm, GSL_COMPLEX_ZERO); // inicializo
-	gsl_matrix_complex_set_all(Lp, GSL_COMPLEX_ZERO); // inicializo
+	gsl_matrix_complex_set(Lz,1,5,gsl_complex_rect(0,-1));
+	gsl_matrix_complex_set(Lz,2,4,gsl_complex_rect(0,-0.5));
+	gsl_matrix_complex_set(Lz,4,2,gsl_complex_rect(0, 0.5));
+	gsl_matrix_complex_set(Lz,5,1,gsl_complex_rect(0, 1));
 
-/*	double Lz[6][6] = {{0, 0, 0, 0, 0, 0},{0, 2, 0, 0, 0, 0},{0, 0, -1, 0, 0, 0}, \
-			   {0, 0, 0, 1, 0, 0},{0, 0, 0, 0, -2, 0},{0, 0, 0, 0, 0, 0}};
-*/
-	/* operador L- */
-/*	double Lm[6][6] = {{0, 0, 0, 0, 0, 0},{0, 0, 0, 1, 0, 0},{0, 0, 0, 0, 1, 0}, \
-			   {0, 0, 0, 0, 0, 1},{0, 0, 0, 0, 0, 0},{0, 0, 1, 0, 0, 0}};
-*/
-	/* operador L+ */
-/*	double Lp[6][6] = {{0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 1}, \
-			   {0, 1, 0, 0, 0, 0},{0, 0, 1, 0, 0, 0},{0, 0, 0, 1, 0, 0}};
-*/
-	gsl_matrix * Hso = gsl_matrix_alloc(nm*SPIN,nm*SPIN); // spin-orbit Hamiltonian
+	gsl_matrix_complex * Lm = gsl_matrix_complex_alloc(6,6); // operador L-
+	gsl_matrix_complex_set_all(Lm, GSL_COMPLEX_ZERO); // inicializo
+	gsl_matrix_complex_set(Lm,1,2,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(Lm,1,4,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(Lm,2,1,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(Lm,2,3,gsl_complex_rect( 0         , sqrt(3)/2));
+	gsl_matrix_complex_set(Lm,2,5,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(Lm,3,2,gsl_complex_rect( 0         ,-sqrt(3)/2));
+	gsl_matrix_complex_set(Lm,3,4,gsl_complex_rect(-sqrt(3)/2,  0));
+	gsl_matrix_complex_set(Lm,4,1,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(Lm,4,3,gsl_complex_rect( sqrt(3)/2,  0));
+	gsl_matrix_complex_set(Lm,4,5,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(Lm,5,2,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(Lm,5,4,gsl_complex_rect( 0.5       , 0));
+
+	gsl_matrix_complex * Lp = gsl_matrix_complex_alloc(6,6); // operador L+
+	gsl_matrix_complex_set_all(Lp, GSL_COMPLEX_ZERO); // inicializo
+	gsl_matrix_complex_set(Lp,1,2,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(Lp,1,4,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(Lp,2,1,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(Lp,2,3,gsl_complex_rect( 0         , sqrt(3)/2));
+	gsl_matrix_complex_set(Lp,2,5,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(Lp,3,2,gsl_complex_rect( 0         ,-sqrt(3)/2));
+	gsl_matrix_complex_set(Lp,3,4,gsl_complex_rect( sqrt(3)/2,  0));
+	gsl_matrix_complex_set(Lp,4,1,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(Lp,4,3,gsl_complex_rect(-sqrt(3)/2,  0));
+	gsl_matrix_complex_set(Lp,4,5,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(Lp,5,2,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(Lp,5,4,gsl_complex_rect(-0.5       , 0));
+
+	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian
 
 	/* orden orbitales:  s , xy , yz , z^2 , xz , x^2-y^2 */
-	for (int i=0; i<ATMS; i++)
+	for (int i=0; i<N; i++)
 		for (int j=0; j<ORB*SPIN; j++)
-			gsl_matrix_set(Hso, i+j*ATMS, i+j*ATMS, 0.5*ml_number[j%6]); /* Lz */
+			gsl_matrix_complex_set(Hso, i+j*ATMS, i+j*ATMS, gsl_complex_rect(0,1)); /* Lz */
 /*			
 	for (i=0; i<ORB; i++)
 		for (j=0; j<ORB; j++)
