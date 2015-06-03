@@ -133,7 +133,10 @@ double 	**M, // XYZ coordinates
 
 	gsl_matrix * H = gsl_matrix_alloc(N*ORB, N*ORB); // create  Hamiltonian matrix (alloc: atoms x orbitals) 
 	gsl_matrix_set_zero(H); // inicialize
-	
+
+	// Phys. Rev. 25,753
+	const float pt_thresh=7.6518; // Angstrong. Square of distance to first neighbor (2.766A). 3.912A lattice constant.
+
 	// read coordinates to create hamiltonian
 	for (int i=0; i<N; i++)	
 		for (int j=0; j<N; j++)
@@ -144,7 +147,7 @@ double 	**M, // XYZ coordinates
 				for (int k0=0; k0<ORB; k0++)
 					for (int k1=0; k1<ORB; k1++) {
 //						printf ("%lf\n", l*l + m*m + n*n ); // square of the difference
-						if ( l*l + m*m + n*n < 3.24 ) { // square of the difference
+						if ( l*l + m*m + n*n < pt_thresh ) { // square of the difference
 							l = cos_dir(l, l, m, n);
 							m = cos_dir(m, l, m, n);
 							n = cos_dir(n, l, m, n);
