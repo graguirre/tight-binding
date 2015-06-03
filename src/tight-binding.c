@@ -78,13 +78,24 @@ void printMat(gsl_matrix * M, int N){
 int i,j;
 	for (i=0; i<N; i++){
 		for (j=0; j<N; j++)
-			printf("%.5g ", gsl_matrix_get(M,i,j));
+			printf("%.3lf ", gsl_matrix_get(M,i,j));
 		printf("\n");
 	}
 
 
 }
 
+/* print square complex matrix */
+void printComMat(gsl_matrix_complex * M, int N){
+int i,j;
+	for (i=0; i<N; i++){
+		for (j=0; j<N; j++)
+			printf("%.3lf ", gsl_complex_abs(gsl_matrix_complex_get(M,i,j)));
+		printf("\n");
+	}
+
+
+}
 
 double cos_dir(double n, double x, double y, double z){
 	return n/sqrt(x*x+y*y+z*z);
@@ -167,61 +178,63 @@ double 	**M, // XYZ coordinates
 
 	/* ---------- interaccion SPIN-ORBIT (en base cartesiana) ----------- */
 	/* Referencia: */
-	/* operador Lz */
+	/* operador LS */
 //	gsl_complex z = gsl_complex_rect(0,1); /* i */
-	gsl_matrix_complex * Lz = gsl_matrix_complex_alloc(6,6); // operador Lz
-	gsl_matrix_complex_set_all(Lz, GSL_COMPLEX_ZERO); // inicializo
-	gsl_matrix_complex_set(Lz,1,5,gsl_complex_rect(0,-1));
-	gsl_matrix_complex_set(Lz,2,4,gsl_complex_rect(0,-0.5));
-	gsl_matrix_complex_set(Lz,4,2,gsl_complex_rect(0, 0.5));
-	gsl_matrix_complex_set(Lz,5,1,gsl_complex_rect(0, 1));
+	gsl_matrix_complex * LS = gsl_matrix_complex_alloc(SPIN*ORB, SPIN*ORB); // operador LS
+	gsl_matrix_complex_set_all(LS, GSL_COMPLEX_ZERO); // inicializo
+	gsl_matrix_complex_set(LS,1, 5,gsl_complex_rect(0,-1));
+	gsl_matrix_complex_set(LS,2, 4,gsl_complex_rect(0,-0.5));
+	gsl_matrix_complex_set(LS,4, 2,gsl_complex_rect(0, 0.5));
+	gsl_matrix_complex_set(LS,5, 1,gsl_complex_rect(0, 1));
 
-	gsl_matrix_complex * Lm = gsl_matrix_complex_alloc(6,6); // operador L-
-	gsl_matrix_complex_set_all(Lm, GSL_COMPLEX_ZERO); // inicializo
-	gsl_matrix_complex_set(Lm,1,2,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(Lm,1,4,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(Lm,2,1,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(Lm,2,3,gsl_complex_rect( 0         , sqrt(3)/2));
-	gsl_matrix_complex_set(Lm,2,5,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(Lm,3,2,gsl_complex_rect( 0         ,-sqrt(3)/2));
-	gsl_matrix_complex_set(Lm,3,4,gsl_complex_rect(-sqrt(3)/2,  0));
-	gsl_matrix_complex_set(Lm,4,1,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(Lm,4,3,gsl_complex_rect( sqrt(3)/2,  0));
-	gsl_matrix_complex_set(Lm,4,5,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(Lm,5,2,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(Lm,5,4,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(LS, 1, 8,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(LS, 1,10,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(LS, 2, 7,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(LS, 2, 9,gsl_complex_rect( 0         , sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 2,11,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(LS, 3, 8,gsl_complex_rect( 0         ,-sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 3,10,gsl_complex_rect(-sqrt(3)/2,  0));
+	gsl_matrix_complex_set(LS, 4, 7,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(LS, 4, 9,gsl_complex_rect( sqrt(3)/2,  0));
+	gsl_matrix_complex_set(LS, 4,11,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(LS, 5, 8,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(LS, 5,10,gsl_complex_rect( 0.5       , 0));
 
-	gsl_matrix_complex * Lp = gsl_matrix_complex_alloc(6,6); // operador L+
-	gsl_matrix_complex_set_all(Lp, GSL_COMPLEX_ZERO); // inicializo
-	gsl_matrix_complex_set(Lp,1,2,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(Lp,1,4,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(Lp,2,1,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(Lp,2,3,gsl_complex_rect( 0         , sqrt(3)/2));
-	gsl_matrix_complex_set(Lp,2,5,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(Lp,3,2,gsl_complex_rect( 0         ,-sqrt(3)/2));
-	gsl_matrix_complex_set(Lp,3,4,gsl_complex_rect( sqrt(3)/2,  0));
-	gsl_matrix_complex_set(Lp,4,1,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(Lp,4,3,gsl_complex_rect(-sqrt(3)/2,  0));
-	gsl_matrix_complex_set(Lp,4,5,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(Lp,5,2,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(Lp,5,4,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(LS, 7, 2,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(LS, 7, 4,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(LS, 8, 1,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(LS, 8, 3,gsl_complex_rect( 0         , sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 8, 5,gsl_complex_rect( 0         , 0.5));
+	gsl_matrix_complex_set(LS, 9, 2,gsl_complex_rect( 0         ,-sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 9, 4,gsl_complex_rect( sqrt(3)/2,  0));
+	gsl_matrix_complex_set(LS,10, 1,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(LS,10, 3,gsl_complex_rect(-sqrt(3)/2,  0));
+	gsl_matrix_complex_set(LS,10, 5,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(LS,11, 2,gsl_complex_rect( 0         ,-0.5));
+	gsl_matrix_complex_set(LS,11, 4,gsl_complex_rect(-0.5       , 0));
+
+	gsl_matrix_complex_set(LS, 7,11,gsl_complex_rect(0,-1));
+	gsl_matrix_complex_set(LS, 8,10,gsl_complex_rect(0,-0.5));
+	gsl_matrix_complex_set(LS,10, 8,gsl_complex_rect(0, 0.5));
+	gsl_matrix_complex_set(LS,11, 7,gsl_complex_rect(0, 1));
+
 
 	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian
 
-	/* orden orbitales:  s , xy , yz , z^2 , xz , x^2-y^2 */
+	/* orbit order:  s , xy , yz , z^2 , xz , x^2-y^2 */
+	/* spin order: up, down */
 	for (int i=0; i<N; i++)
-		for (int j=0; j<ORB*SPIN; j++)
-			gsl_matrix_complex_set(Hso, i+j*ATMS, i+j*ATMS, gsl_complex_rect(0,1)); /* Lz */
-/*			
-	for (i=0; i<ORB; i++)
-		for (j=0; j<ORB; j++)
-			if (Lm[i][j])
-				for (k=0; k<ATMS; k++)
-					gsl_matrix_set(Hso, ATMS*ORB+i*ATMS+k, i*ATMS+k, sqrt(2)); // L- 
-			if (Lp[i][j])
-				for (k=0; k<ATMS; k++)
-					gsl_matrix_set(Hso, i*ATMS+k, ATMS*ORB+i*ATMS+k, sqrt(2)); // L+ 
-*/
+		for (int j=0; j<N; j++)
+			for(int k0=0; k0<SPIN*ORB; k0++)		
+			for(int k1=0; k1<SPIN*ORB; k1++){	
+				//printf("%d %d %d %d\n",i,j,k0,k1);
+				if (i==j){ // spin-orbit interaction
+					gsl_complex z = gsl_matrix_complex_get(LS,k0,k1);
+					gsl_matrix_complex_set(Hso, i*SPIN*ORB+k0, j*SPIN*ORB+k1, z); 
+				}else { // tight-binding
+					gsl_matrix_complex_set(Hso, i*SPIN*ORB+k0, j*SPIN*ORB+k1, gsl_complex_rect(0,1)); 
+				}
+			}
 
 					
 	
@@ -231,7 +244,12 @@ double 	**M, // XYZ coordinates
 		return 0;
 	}
 
-	/* calculate eigenvalues */
+	if (hflag){
+		printComMat(Hso,N*SPIN*ORB);
+		return 0;
+	}
+
+
 	gsl_matrix * evec = gsl_matrix_alloc(nm,nm);
 	gsl_vector * eval = gsl_vector_alloc(nm);
 	gsl_eigen_symmv_workspace * ws = gsl_eigen_symmv_alloc(nm);
