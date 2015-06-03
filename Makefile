@@ -7,7 +7,7 @@ LIBDIR=lib
 INCLUDEDIR=include
 
 # enlaza proyecto
-tight-binding: 
+tight-binding: ${LIBDIR}/slater-koster.o 
 	${CC} ${CFLAGS} src/tight-binding.c ${LIBDIR}/slater-koster.o -o tight-binding
 
 # compila archivos lib
