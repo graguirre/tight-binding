@@ -72,10 +72,12 @@ void usage(){
 	printf("\t-h\tprint hamiltonian matrix\n");
 }
 
-void printMat(gsl_matrix * M){
+
+/* print square matrix */
+void printMat(gsl_matrix * M, int N){
 int i,j;
-	for (i=0; i<nm; i++){
-		for (j=0; j<nm; j++)
+	for (i=0; i<N; i++){
+		for (j=0; j<N; j++)
 			printf("%.5g ", gsl_matrix_get(M,i,j));
 		printf("\n");
 	}
@@ -84,32 +86,21 @@ int i,j;
 }
 
 
-gsl_matrix * hamiltonian(int n, double ** d){
-gsl_matrix * m = NULL;
-
-	return m;
-}
 double cos_dir(double n, double x, double y, double z){
 	return n/sqrt(x*x+y*y+z*z);
 }
 
 int main(int argc, char *argv[]){
 int 	c,
-	i,
-	j,
-	k,
 	N;
 int	dflag=0,
 	eflag=0,
 	hflag=0;
 
-float 	f[4],
-	w; /* frec */
+float 	w; /* frec */
 
-double 	M[44][2], // posiciones
+double 	**M, // XYZ coordinates
 	dos;
-	
-
 
 	while((c = getopt (argc, argv, "deh")) != -1){
 		switch (c){
@@ -128,94 +119,53 @@ double 	M[44][2], // posiciones
 
 	scanf("%d",&N);
 
+	M = (double **) malloc (N*sizeof(double *)); // coordinate matrix
+
 	// read coordinates (XYZ format file)
-	for (i=0; i<N; i++){
-		for (j=0; j<4; j++) // read: _ X Y Z
-			scanf("%f",&f[j]);
-		M[i][0] = f[2]; // X
-		// plane structure Y=0
-		M[i][1] = f[1]; // Z
+	for (int i=0; i<N; i++){
+		char null[5]; // discard element
+		double *tmp = (double *) malloc (3 * sizeof(double)); // 3 coordinates
+		scanf("%s%lf%lf%lf", null, &tmp[0], &tmp[1], &tmp[2]);
+		M[i] = tmp;
 //		printf("- %.2f %.2f\n",M[i][0], M[i][1]); // DEBUG
 	}
 
 
-	gsl_matrix * H = gsl_matrix_alloc(nm,nm); // create  Hamiltonian matrix (alloc: atoms x orbitals) 
+	gsl_matrix * H = gsl_matrix_alloc(N*ORB, N*ORB); // create  Hamiltonian matrix (alloc: atoms x orbitals) 
 	gsl_matrix_set_zero(H); // inicialize
 	
-	// read leads
-	for (i=0; i<nl; i++)	
-		for (j=0; j<nl; j++){
-			double l = M[i][0]-M[j][0]; 	// proyection X
-			double m = 0;			// proyection Y
-			double n = M[i][1]-M[j][1];	// proyection Z
-			l = cos_dir(l, l, m, n);
-			m = 0; //cos_dir(m, l, m, n);
-			n = cos_dir(n, l, m, n);
-			for (int k0=0; k0<ORB; k0++)
-				for (int k1=0; k1<ORB; k1++) {
-					if ( sqr(M[i][0]-M[j][0]) + sqr(M[i][1]-M[j][1]) < 3.24 && i!=j) { // square of the difference
-						gsl_matrix_set (H, k0*(nl+na)+i, k1*(nl+na)+j, func[k0][k1] (l,m,n)); // set hopping
-						// uncomment if debbuging
-//						fprintf(stderr,"--------- %d %d -----------\n",i,j);
-//						fprintf(stderr, "Orbitales (%.2f, %.2f): %s,%s h: %g \n", l, n, orbital_str[k0], orbital_str[k1], func[k0][k1] (l,m,n));
-						
+	// read coordinates to create hamiltonian
+	for (int i=0; i<N; i++)	
+		for (int j=0; j<N; j++)
+			if ( i!=j ){
+				double l = M[i][0]-M[j][0]; 	// proyection X
+				double m = M[i][1]-M[j][1];	// proyection Y
+				double n = M[i][2]-M[j][2];	// proyection Z
+				for (int k0=0; k0<ORB; k0++)
+					for (int k1=0; k1<ORB; k1++) {
+//						printf ("%lf\n", l*l + m*m + n*n ); // square of the difference
+						if ( l*l + m*m + n*n < 3.24 ) { // square of the difference
+							l = cos_dir(l, l, m, n);
+							m = cos_dir(m, l, m, n);
+							n = cos_dir(n, l, m, n);
+							gsl_matrix_set (H, i*ORB+k0, j*ORB+k1, func[k0][k1] (l,m,n)); // set hopping
+							// uncomment if debbuging
+//							fprintf(stderr,"--------- %d %d -----------\n",i,j);
+//							fprintf(stderr, "Orbitales (%.2f, %.2f): %s,%s h: %g \n", l, n, orbital_str[k0], orbital_str[k1], func[k0][k1] (l,m,n));
+						}
 					}
-				}
-		}
-
-	// pt chain
-	for (i=0; i<na-1; i++){
-		double l = M[(nl+na)-na+i][0]-M[(nl+na)-na+i+1][0];
-		double m = 0;
-		double n = M[(nl+na)-na+i][1]-M[(nl+na)-na+i+1][1];
-		l = cos_dir(l, l, m, n);
-		m = 0; //cos_dir(m, l, m, n);
-		n = cos_dir(n, l, m, n);
-		for (int k0=0; k0<ORB; k0++)
-			for (int k1=0; k1<ORB; k1++){
-				gsl_matrix_set (H, (k0+1)*(nl+na)-na+i, (k1+1)*(nl+na)-na+i+1, func[k0][k1] (l,m,n));
-				gsl_matrix_set (H, (k0+1)*(nl+na)-na+i+1, (k1+1)*(nl+na)-na+i, func[k0][k1] (l,m,n)); // symmetry
-//				fprintf(stderr, "Orbitales (%.2f, %.2f): %s-%s h: %g \n", l, n, orbital_str[k0], orbital_str[k1], func[k0][k1] (l,m,n));
 			}
-	}
 
-
-
-	// lead -- chain hopping
-	for (int k0=0; k0<ORB; k0++)
-		for (int k1=0; k1<ORB; k1++){
-			double l = M[17][0]-M[36][0];
-			double m = 0;
-			double n = M[17][1]-M[36][1];
-			l = cos_dir(l, l, m, n);
-			m = 0; //cos_dir(m, l, m, n);
-			n = cos_dir(n, l, m, n);
-
-			gsl_matrix_set (H, k0*(nl+na)+17, k1*(nl+na)+36, func[k0][k1] (l,m,n));
-			gsl_matrix_set (H, k0*(nl+na)+36, k1*(nl+na)+17, func[k0][k1] (l,m,n));
-//			fprintf(stderr,"--------- %d %d -----------\n",k0,k1);
-//			fprintf(stderr, "Orbitales (%.2f, %.2f): %s-%s h: %g \n", l, n, orbital_str[k0], orbital_str[k1], func[k0][k1] (l,m,n));
-			l = M[18][0]-M[39][0];
-			m = 0;
-			n = M[18][1]-M[39][1];
-			l = cos_dir(l, l, m, n);
-			m = 0; //cos_dir(m, l, m, n);
-			n = cos_dir(n, l, m, n);
-
-			gsl_matrix_set (H, k0*(nl+na)+18, k1*(nl+na)+39, func[k0][k1] (l,m,n));
-			gsl_matrix_set (H, k0*(nl+na)+39, k1*(nl+na)+18, func[k0][k1] (l,m,n));
-//			fprintf(stderr, "Orbitales (%.2f, %.2f): %s-%s h: %g \n", l, n, orbital_str[k0], orbital_str[k1], func[k0][k1] (l,m,n));
-		}
 	// energy (digonal values)
-	for (i=0; i<(nl+na); i++)
-		for (j=0; j<ORB; j++)
-			gsl_matrix_set (H, j*(nl+na)+i, j*(nl+na)+i, PARAM_E[j]);
+	for (int i=0; i<N; i++)
+		for (int j=0; j<ORB; j++)
+			gsl_matrix_set (H, i*ORB+j, i*ORB+j, PARAM_E[j]);
 	
 
 	/* ---------- interaccion SPIN-ORBIT (en base cartesiana) ----------- */
 	/* Referencia: */
 	/* operador Lz */
-	gsl_complex z = gsl_complex_rect(0,1); /* i */
+//	gsl_complex z = gsl_complex_rect(0,1); /* i */
 	gsl_matrix_complex * Lz = gsl_matrix_complex_alloc(6,6); // operador Lz
 	gsl_matrix_complex * Lm = gsl_matrix_complex_alloc(6,6); // operador L-
 	gsl_matrix_complex * Lp = gsl_matrix_complex_alloc(6,6); // operador L+
@@ -237,8 +187,8 @@ double 	M[44][2], // posiciones
 	gsl_matrix * Hso = gsl_matrix_alloc(nm*SPIN,nm*SPIN); // spin-orbit Hamiltonian
 
 	/* orden orbitales:  s , xy , yz , z^2 , xz , x^2-y^2 */
-	for (i=0; i<ATMS; i++)
-		for (j=0; j<ORB*SPIN; j++)
+	for (int i=0; i<ATMS; i++)
+		for (int j=0; j<ORB*SPIN; j++)
 			gsl_matrix_set(Hso, i+j*ATMS, i+j*ATMS, 0.5*ml_number[j%6]); /* Lz */
 /*			
 	for (i=0; i<ORB; i++)
@@ -253,9 +203,9 @@ double 	M[44][2], // posiciones
 
 					
 	
-
+	/* print hamiltonial */
 	if (hflag){
-		printMat(H);
+		printMat(H,N*ORB);
 		return 0;
 	}
 
@@ -268,7 +218,7 @@ double 	M[44][2], // posiciones
 	gsl_eigen_symmv_free(ws);
 
 	if (eflag){
-		for (i=0; i<nm; i++)
+		for (int i=0; i<nm; i++)
 			printf("%d %.4g \n", i, gsl_vector_get(eval,i));
 		return 0;
 	}
@@ -284,12 +234,12 @@ double 	M[44][2], // posiciones
 
 	for (w = eval_min; w < eval_max; w += 0.001){
 		dos = 0;	
-		#pragma omp parallel num_threads(4)
+//		#pragma omp parallel num_threads(4)
 		{
 		int tid = omp_get_thread_num();
-		#pragma omp for private(i,k) reduction (+:dos)
-		for (i=0; i<nm; i++)	
-			for (k=0; k<nm; k++){
+//		#pragma omp for private(i,k) reduction (+:dos)
+		for (int i=0; i<nm; i++)	
+			for (int k=0; k<nm; k++){
 				double h = gsl_matrix_get (H, i, k);
 				double l = gsl_vector_get (eval ,k);
 				gsl_complex z = gsl_complex_rect(0,1e-4); /* parte imaginaria */
