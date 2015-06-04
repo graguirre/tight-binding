@@ -247,9 +247,8 @@ double 	**M, // XYZ coordinates
 			}
 
 	// energy (digonal values)
-	for (int i=0; i<N; i++)
-		for (int j=0; j<ORB; j++)
-			gsl_matrix_set (H, i*ORB+j, i*ORB+j, PARAM_E[j]);
+	for (int i=0; i<N*SPIN*ORB; i++)
+		gsl_matrix_complex_set (Hso, i, i, gsl_complex_rect(PARAM_E[i%6],0));
 	
 					
 	
