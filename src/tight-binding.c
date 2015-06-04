@@ -147,7 +147,7 @@ double 	**M, // XYZ coordinates
 
 	// Phys. Rev. 25,753
 	const float pt_thresh=7.6518; // Angstrong. Square of distance to first neighbor (2.766A). 3.912A lattice constant.
-
+/*
 	// read coordinates to create hamiltonian
 	for (int i=0; i<N; i++)	
 		for (int j=0; j<N; j++)
@@ -169,7 +169,7 @@ double 	**M, // XYZ coordinates
 						}
 					}
 			}
-
+*/
 	// energy (digonal values)
 	for (int i=0; i<N; i++)
 		for (int j=0; j<ORB; j++)
@@ -177,9 +177,8 @@ double 	**M, // XYZ coordinates
 	
 
 	/* ---------- interaccion SPIN-ORBIT (en base cartesiana) ----------- */
-	/* Referencia: */
+	/* Ref.:  Jaffe, M. D., Singh, J. (1987/05)."Inclusion of spin-orbit coupling into tight binding bandstructure calculations for bulk and superlattice semiconductors." Solid State Communications 62(6): 399-402.  */
 	/* operador LS */
-//	gsl_complex z = gsl_complex_rect(0,1); /* i */
 	gsl_matrix_complex * LS = gsl_matrix_complex_alloc(SPIN*ORB, SPIN*ORB); // operador LS
 	gsl_matrix_complex_set_all(LS, GSL_COMPLEX_ZERO); // inicializo
 	gsl_matrix_complex_set(LS,1, 5,gsl_complex_rect(0,-1));
@@ -220,6 +219,7 @@ double 	**M, // XYZ coordinates
 
 
 	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian
+	
 
 	/* orbit order:  s , xy , yz , z^2 , xz , x^2-y^2 */
 	/* spin order: up, down */
@@ -227,23 +227,38 @@ double 	**M, // XYZ coordinates
 		for (int j=0; j<N; j++)
 			for(int k0=0; k0<SPIN*ORB; k0++)		
 			for(int k1=0; k1<SPIN*ORB; k1++){	
-				//printf("%d %d %d %d\n",i,j,k0,k1);
-				if (i==j){ // spin-orbit interaction
+//				printf("%d %d %d %d\n",i,j,k0,k1);
+				if (i==j) { // spin-orbit interaction
 					gsl_complex z = gsl_matrix_complex_get(LS,k0,k1);
 					gsl_matrix_complex_set(Hso, i*SPIN*ORB+k0, j*SPIN*ORB+k1, z); 
-				}else { // tight-binding
-					gsl_matrix_complex_set(Hso, i*SPIN*ORB+k0, j*SPIN*ORB+k1, gsl_complex_rect(0,1)); 
+				} else if ((k0 < ORB && k1 < ORB) || (k0 >= ORB && k1 >= ORB)){ // tight-binding (affect same spin)
+					double l = M[i][0]-M[j][0]; 	// proyection X
+					double m = M[i][1]-M[j][1];	// proyection Y
+					double n = M[i][2]-M[j][2];	// proyection Z
+					if ( l*l + m*m + n*n < pt_thresh ) { // square of the difference
+//						printf("%.2f %.2f %.2f\n", l,m,n);
+						l = cos_dir(l, l, m, n);
+						m = cos_dir(m, l, m, n);
+						n = cos_dir(n, l, m, n);
+						double d = func[k0%6][k1%6] (l,m,n); // slater-koster 6x6 orbital matrix
+						gsl_matrix_complex_set (Hso, i*SPIN*ORB+k0, j*SPIN*ORB+k1, gsl_complex_rect(d,0)); // set hopping
+					}
 				}
 			}
 
+	// energy (digonal values)
+	for (int i=0; i<N; i++)
+		for (int j=0; j<ORB; j++)
+			gsl_matrix_set (H, i*ORB+j, i*ORB+j, PARAM_E[j]);
+	
 					
 	
 	/* print hamiltonial */
-	if (hflag){
+/*	if (hflag){
 		printMat(H,N*ORB);
 		return 0;
 	}
-
+*/
 	if (hflag){
 		printComMat(Hso,N*SPIN*ORB);
 		return 0;
