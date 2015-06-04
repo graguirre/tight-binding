@@ -5,45 +5,48 @@ double cos_dir(double n, double x, double y, double z){
 }
 
 gsl_matrix_complex * hamiltonian(double **M, int N){
+	double lambda=0; /* spin-orbit interaction parameter*/
+
+
 	/* LS operator (s + d orbitals)*/
 	/* Ref.:  Jaffe, M. D., Singh, J. (1987/05)."Inclusion of spin-orbit coupling into tight binding bandstructure calculations for bulk and superlattice semiconductors." Solid State Communications 62(6): 399-402.  */
 	gsl_matrix_complex * LS = gsl_matrix_complex_alloc(SPIN*ORB, SPIN*ORB); 
 	gsl_matrix_complex_set_all(LS, GSL_COMPLEX_ZERO); // initialize
-	gsl_matrix_complex_set(LS,1, 5,gsl_complex_rect(0,-1));
-	gsl_matrix_complex_set(LS,2, 4,gsl_complex_rect(0,-0.5));
-	gsl_matrix_complex_set(LS,4, 2,gsl_complex_rect(0, 0.5));
-	gsl_matrix_complex_set(LS,5, 1,gsl_complex_rect(0, 1));
+	gsl_matrix_complex_set(LS,1, 5,gsl_complex_rect(lambda*0,lambda*-1));
+	gsl_matrix_complex_set(LS,2, 4,gsl_complex_rect(lambda*0,lambda*-0.5));
+	gsl_matrix_complex_set(LS,4, 2,gsl_complex_rect(lambda*0,lambda* 0.5));
+	gsl_matrix_complex_set(LS,5, 1,gsl_complex_rect(lambda*0,lambda* 1));
 
-	gsl_matrix_complex_set(LS, 1, 8,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(LS, 1,10,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(LS, 2, 7,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(LS, 2, 9,gsl_complex_rect( 0         , sqrt(3)/2));
-	gsl_matrix_complex_set(LS, 2,11,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(LS, 3, 8,gsl_complex_rect( 0         ,-sqrt(3)/2));
-	gsl_matrix_complex_set(LS, 3,10,gsl_complex_rect(-sqrt(3)/2,  0));
-	gsl_matrix_complex_set(LS, 4, 7,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(LS, 4, 9,gsl_complex_rect( sqrt(3)/2,  0));
-	gsl_matrix_complex_set(LS, 4,11,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(LS, 5, 8,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(LS, 5,10,gsl_complex_rect( 0.5       , 0));
+	gsl_matrix_complex_set(LS, 1, 8,gsl_complex_rect(lambda* 0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS, 1,10,gsl_complex_rect(lambda* 0         ,lambda* 0.5));
+	gsl_matrix_complex_set(LS, 2, 7,gsl_complex_rect(lambda*-0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS, 2, 9,gsl_complex_rect(lambda* 0         ,lambda* sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 2,11,gsl_complex_rect(lambda* 0         ,lambda* 0.5));
+	gsl_matrix_complex_set(LS, 3, 8,gsl_complex_rect(lambda* 0         ,lambda*-sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 3,10,gsl_complex_rect(lambda*-sqrt(3)/2 ,lambda*  0));
+	gsl_matrix_complex_set(LS, 4, 7,gsl_complex_rect(lambda* 0         ,lambda*-0.5));
+	gsl_matrix_complex_set(LS, 4, 9,gsl_complex_rect(lambda* sqrt(3)/2 ,lambda*  0));
+	gsl_matrix_complex_set(LS, 4,11,gsl_complex_rect(lambda*-0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS, 5, 8,gsl_complex_rect(lambda* 0         ,lambda*-0.5));
+	gsl_matrix_complex_set(LS, 5,10,gsl_complex_rect(lambda* 0.5       ,lambda* 0));
 
-	gsl_matrix_complex_set(LS, 7, 2,gsl_complex_rect(-0.5       , 0));
-	gsl_matrix_complex_set(LS, 7, 4,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(LS, 8, 1,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(LS, 8, 3,gsl_complex_rect( 0         , sqrt(3)/2));
-	gsl_matrix_complex_set(LS, 8, 5,gsl_complex_rect( 0         , 0.5));
-	gsl_matrix_complex_set(LS, 9, 2,gsl_complex_rect( 0         ,-sqrt(3)/2));
-	gsl_matrix_complex_set(LS, 9, 4,gsl_complex_rect( sqrt(3)/2,  0));
-	gsl_matrix_complex_set(LS,10, 1,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(LS,10, 3,gsl_complex_rect(-sqrt(3)/2,  0));
-	gsl_matrix_complex_set(LS,10, 5,gsl_complex_rect( 0.5       , 0));
-	gsl_matrix_complex_set(LS,11, 2,gsl_complex_rect( 0         ,-0.5));
-	gsl_matrix_complex_set(LS,11, 4,gsl_complex_rect(-0.5       , 0));
+	gsl_matrix_complex_set(LS, 7, 2,gsl_complex_rect(lambda*-0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS, 7, 4,gsl_complex_rect(lambda* 0         ,lambda* 0.5));
+	gsl_matrix_complex_set(LS, 8, 1,gsl_complex_rect(lambda* 0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS, 8, 3,gsl_complex_rect(lambda* 0         ,lambda* sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 8, 5,gsl_complex_rect(lambda* 0         ,lambda* 0.5));
+	gsl_matrix_complex_set(LS, 9, 2,gsl_complex_rect(lambda* 0         ,lambda*-sqrt(3)/2));
+	gsl_matrix_complex_set(LS, 9, 4,gsl_complex_rect(lambda* sqrt(3)/2 ,lambda*  0));
+	gsl_matrix_complex_set(LS,10, 1,gsl_complex_rect(lambda* 0         ,lambda*-0.5));
+	gsl_matrix_complex_set(LS,10, 3,gsl_complex_rect(lambda*-sqrt(3)/2 ,lambda*  0));
+	gsl_matrix_complex_set(LS,10, 5,gsl_complex_rect(lambda* 0.5       ,lambda* 0));
+	gsl_matrix_complex_set(LS,11, 2,gsl_complex_rect(lambda* 0         ,lambda*-0.5));
+	gsl_matrix_complex_set(LS,11, 4,gsl_complex_rect(lambda*-0.5       ,lambda* 0));
 
-	gsl_matrix_complex_set(LS, 7,11,gsl_complex_rect(0,-1));
-	gsl_matrix_complex_set(LS, 8,10,gsl_complex_rect(0,-0.5));
-	gsl_matrix_complex_set(LS,10, 8,gsl_complex_rect(0, 0.5));
-	gsl_matrix_complex_set(LS,11, 7,gsl_complex_rect(0, 1));
+	gsl_matrix_complex_set(LS, 7,11,gsl_complex_rect(lambda*0,lambda*-1));
+	gsl_matrix_complex_set(LS, 8,10,gsl_complex_rect(lambda*0,lambda*-0.5));
+	gsl_matrix_complex_set(LS,10, 8,gsl_complex_rect(lambda*0,lambda* 0.5));
+	gsl_matrix_complex_set(LS,11, 7,gsl_complex_rect(lambda*0,lambda* 1));
 
 
 	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian	
