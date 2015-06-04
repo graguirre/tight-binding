@@ -95,7 +95,8 @@ int i,j;
 }
 
 int main(int argc, char *argv[]){
-int 	c,
+int 	i,j,k,
+	c,
 	N;
 int	dflag=0,
 	eflag=0,
@@ -135,12 +136,7 @@ double 	**M, // XYZ coordinates
 	}
 
 
-	gsl_matrix * H = gsl_matrix_alloc(N*ORB, N*ORB); // create  Hamiltonian matrix (alloc: atoms x orbitals) 
-	gsl_matrix_set_zero(H); // inicialize
-
 	gsl_matrix_complex * Hso = hamiltonian(M, N);
-					
-	
 	/* print hamiltonial */
 	if (hflag){
 		printComMat(Hso,N*SPIN*ORB);
@@ -148,6 +144,8 @@ double 	**M, // XYZ coordinates
 	}
 
 
+
+	/* eigenvalues */
 	gsl_matrix_complex * evec = gsl_matrix_complex_alloc(N*SPIN*ORB, N*SPIN*ORB);
 	gsl_vector * eval = gsl_vector_alloc(N*SPIN*ORB);
 	gsl_eigen_hermv_workspace * ws = gsl_eigen_hermv_alloc(N*SPIN*ORB);
@@ -163,7 +161,7 @@ double 	**M, // XYZ coordinates
 
 
 	/* calculate DoS */
-	gsl_matrix_complex * G = gsl_matrix_complex_alloc(nm,nm); // Green
+	gsl_matrix_complex * G = gsl_matrix_complex_alloc(N*SPIN*ORB, N*SPIN*ORB); // Green
 	gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // inicializo
 
 	double eval_min = gsl_vector_min (eval),
@@ -171,16 +169,16 @@ double 	**M, // XYZ coordinates
 
 	for (w = eval_min; w < eval_max; w += 0.001){
 		dos = 0;	
-//		#pragma omp parallel num_threads(4)
+		#pragma omp parallel num_threads(4)
 		{
 		int tid = omp_get_thread_num();
-//		#pragma omp for private(i,k) reduction (+:dos)
-		for (int i=0; i<nm; i++)	
-			for (int k=0; k<nm; k++){
-				double h = gsl_matrix_get (H, i, k);
+		#pragma omp for private(i,k) reduction (+:dos)
+		for (i=0; i<N*SPIN*ORB; i++)	
+			for (k=0; k<N*SPIN*ORB; k++){
+				gsl_complex h = gsl_matrix_complex_get (Hso, i, k);
 				double l = gsl_vector_get (eval ,k);
 				gsl_complex z = gsl_complex_rect(0,1e-4); /* parte imaginaria */
-				gsl_complex num = gsl_complex_rect(h*h,0); /* numerador */
+				gsl_complex num = gsl_complex_mul(h,h); /* numerador */
 				gsl_complex den = gsl_complex_add_real(z, w-l); /* denominador */
 				gsl_complex g = gsl_complex_div(num,den);
 				dos += GSL_IMAG(g);
@@ -194,8 +192,6 @@ double 	**M, // XYZ coordinates
 
 	gsl_vector_free(eval);
 	gsl_matrix_complex_free(evec);
-
-	gsl_matrix_free(H);
 
 	return 0;
 }
