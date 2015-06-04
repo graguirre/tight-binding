@@ -177,7 +177,7 @@ double 	**M, // XYZ coordinates
 			for (k=0; k<N*SPIN*ORB; k++){
 				gsl_complex h = gsl_matrix_complex_get (Hso, i, k);
 				double l = gsl_vector_get (eval ,k);
-				gsl_complex z = gsl_complex_rect(0,1e-4); /* parte imaginaria */
+				gsl_complex z = gsl_complex_rect(0,5e-3); /* parte imaginaria */
 				gsl_complex num = gsl_complex_mul(h,h); /* numerador */
 				gsl_complex den = gsl_complex_add_real(z, w-l); /* denominador */
 				gsl_complex g = gsl_complex_div(num,den);
