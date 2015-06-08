@@ -135,8 +135,8 @@ double 	**M, // XYZ coordinates
 //		printf("- %.2f %.2f\n",M[i][0], M[i][1]); // DEBUG
 	}
 
-
-	gsl_matrix_complex * Hso = hamiltonian(M, N);
+	/* M: coordinate matrix, N: number of atoms, l: spin-orbit parameter (set to 0 to tight-binding)*/
+	gsl_matrix_complex * Hso = hamiltonian(M, N, 0.3);
 	/* print hamiltonial */
 	if (hflag){
 		printComMat(Hso,N*SPIN*ORB);

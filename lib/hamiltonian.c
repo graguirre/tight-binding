@@ -4,8 +4,7 @@ double cos_dir(double n, double x, double y, double z){
 	return n/sqrt(x*x+y*y+z*z);
 }
 
-gsl_matrix_complex * hamiltonian(double **M, int N){
-	double lambda=0; /* spin-orbit interaction parameter*/
+gsl_matrix_complex * hamiltonian(double **M, int N, double lambda){
 
 
 	/* LS operator (s + d orbitals)*/

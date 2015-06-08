@@ -16,6 +16,6 @@
 
 double cos_dir(double, double, double, double );
 
-gsl_matrix_complex * hamiltonian(double **, int N);
+gsl_matrix_complex * hamiltonian(double **, int, double);
 
 #endif // hamiltonian
