@@ -42,10 +42,10 @@ gsl_matrix_complex * hamiltonian(double **M, int N, double lambda){
 	gsl_matrix_complex_set(LS,11, 2,gsl_complex_rect(lambda* 0         ,lambda*-0.5));
 	gsl_matrix_complex_set(LS,11, 4,gsl_complex_rect(lambda*-0.5       ,lambda* 0));
 
-	gsl_matrix_complex_set(LS, 7,11,gsl_complex_rect(lambda*0,lambda*-1));
-	gsl_matrix_complex_set(LS, 8,10,gsl_complex_rect(lambda*0,lambda*-0.5));
-	gsl_matrix_complex_set(LS,10, 8,gsl_complex_rect(lambda*0,lambda* 0.5));
-	gsl_matrix_complex_set(LS,11, 7,gsl_complex_rect(lambda*0,lambda* 1));
+	gsl_matrix_complex_set(LS, 7,11,gsl_complex_rect(lambda*0,lambda* 1));
+	gsl_matrix_complex_set(LS, 8,10,gsl_complex_rect(lambda*0,lambda* 0.5));
+	gsl_matrix_complex_set(LS,10, 8,gsl_complex_rect(lambda*0,lambda*-0.5));
+	gsl_matrix_complex_set(LS,11, 7,gsl_complex_rect(lambda*0,lambda*-1));
 
 
 	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian	
