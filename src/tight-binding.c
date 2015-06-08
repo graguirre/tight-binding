@@ -104,10 +104,13 @@ int	dflag=0,
 
 float 	w; /* frec */
 
-double 	**M, // XYZ coordinates
-	dos;
+//char *lvalue=NULL;
 
-	while((c = getopt (argc, argv, "deh")) != -1){
+double 	**M, // XYZ coordinates
+	dos,
+	lambda=0;
+
+	while((c = getopt (argc, argv, "dehl:")) != -1){
 		switch (c){
 			case 'd':
 				dflag = 1;
@@ -117,6 +120,9 @@ double 	**M, // XYZ coordinates
 				break;
 			case 'h':
 				hflag = 1;
+				break;
+			case 'l':
+				lambda = atof(optarg);
 				break;
 		}
 	}
@@ -136,7 +142,7 @@ double 	**M, // XYZ coordinates
 	}
 
 	/* M: coordinate matrix, N: number of atoms, l: spin-orbit parameter (set to 0 to tight-binding)*/
-	gsl_matrix_complex * Hso = hamiltonian(M, N, 0.3);
+	gsl_matrix_complex * Hso = hamiltonian(M, N, lambda);
 	/* print hamiltonial */
 	if (hflag){
 		printComMat(Hso,N*SPIN*ORB);
