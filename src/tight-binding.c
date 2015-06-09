@@ -155,7 +155,8 @@ double 	**M, // XYZ coordinates
 	gsl_matrix_complex * evec = gsl_matrix_complex_alloc(N*SPIN*ORB, N*SPIN*ORB);
 	gsl_vector * eval = gsl_vector_alloc(N*SPIN*ORB);
 	gsl_eigen_hermv_workspace * ws = gsl_eigen_hermv_alloc(N*SPIN*ORB);
-	gsl_eigen_hermv (Hso, eval, evec, ws);
+	gsl_matrix_complex * A = Hso; // gsl_eigen_hermv() destroys Hso matrix, use a copy instead
+	gsl_eigen_hermv (A, eval, evec, ws);
 	gsl_eigen_hermv_sort (eval, evec, GSL_EIGEN_SORT_VAL_ASC);
 	gsl_eigen_hermv_free(ws);
 
@@ -170,8 +171,8 @@ double 	**M, // XYZ coordinates
 	gsl_matrix_complex * G = gsl_matrix_complex_alloc(N*SPIN*ORB, N*SPIN*ORB); // Green
 	gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // inicializo
 
-	double eval_min = gsl_vector_min (eval),
-	eval_max = gsl_vector_max (eval);	
+	double 	eval_min = gsl_vector_min (eval),
+		eval_max = gsl_vector_max (eval);	
 
 	for (w = eval_min; w < eval_max; w += 0.001){
 		dos = 0;	
