@@ -50,7 +50,7 @@ gsl_matrix_complex * hamiltonian(double **M, int N, double lambda){
 
 	gsl_matrix_complex * Hso = gsl_matrix_complex_alloc(N*ORB*SPIN,N*ORB*SPIN); // spin-orbit Hamiltonian	
 	// Phys. Rev. 25,753
-	const float pt_thresh=7.6518; // Angstrong. Square of distance to first neighbor (2.766A). 3.912A lattice constant.
+	const float pt_thresh=7.8; // Angstrong. Square of distance to first neighbor (2.766A). 3.912A lattice constant.
 	/* orbit order:  s , xy , yz , z^2 , xz , x^2-y^2 */
 	/* spin order: up, down */
 	for (int i=0; i<N; i++)
