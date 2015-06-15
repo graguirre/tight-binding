@@ -194,6 +194,19 @@ double 	**M, // XYZ coordinates
 			printf("%.3g %g \n", w, -dos/PI);
 		}
 	}
+
+
+	fprintf(stderr,"Tamano matriz %d", N*SPIN*ORB);
+	/* Green's function 
+	 *
+	 *            <i|n> <n|j>
+	 * Gij(E) = ----------------
+	 *           E - En + i*eta
+	 *
+	 * where i and j are atoms, and n is the state
+	 */
+	
+
 	
 	gsl_matrix_complex_free(G);
 
