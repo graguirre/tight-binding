@@ -20,21 +20,31 @@ Make and run
 ------------
 * Make
 
+```
 $ make tight-binding
+```
 
 * Calculate DoS 
 
+```
 $ cat input/pt-pt.xyz | ./tight-binding -d
+```
 
 * Calculate DoS with spin-orbit (parameter lambda=0.1) 
 
+```
 $ cat input/pt-pt.xyz | ./tight-binding -d -l 0.1
+```
 
 * Plot DOS, using gnuplot
 
+```
 gnuplot> plot '<(cat input/cadenaPt.xyz | ./tight-binding -d)' u 1:2 w l
+```
 
 * Plot Hamiltonian matrix, using gnuplot
 
+```
 gnuplot> set view map
 gnuplot> plot '<(cat input/pt-pt.xyz | ./tight-binding -h)' matrix with image
+```
