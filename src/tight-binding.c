@@ -66,6 +66,7 @@ void usage(){
 	printf("Usage:\n");
 	printf("\t-d\tprint density of states\n");
 	printf("\t-e\tprint eigenvalues\n");
+	printf("\t-g\tprint conductance\n");
 	printf("\t-h\tprint hamiltonian matrix\n");
 	printf("\t-l float\tspin-orbit parameter\n");
 }
@@ -101,6 +102,8 @@ int 	i,j,k,
 	N;
 int	dflag=0,
 	eflag=0,
+	gflag=0,
+	vflag=0,
 	hflag=0;
 
 float 	w; /* frec */
@@ -111,13 +114,16 @@ double 	**M, // XYZ coordinates
 	dos,
 	lambda=0;
 
-	while((c = getopt (argc, argv, "dehl:")) != -1){
+	while((c = getopt (argc, argv, "devhl:")) != -1){
 		switch (c){
 			case 'd':
 				dflag = 1;
 				break;
 			case 'e':
 				eflag = 1;
+				break;
+			case 'v':
+				vflag = 1;
 				break;
 			case 'h':
 				hflag = 1;
@@ -167,15 +173,19 @@ double 	**M, // XYZ coordinates
 		return 0;
 	}
 
+	if (vflag){
+		printComMat(evec, N*SPIN*ORB);
+		return 0;
+	}
+
+
+
 
 	/* calculate DoS */
-	gsl_matrix_complex * G = gsl_matrix_complex_alloc(N*SPIN*ORB, N*SPIN*ORB); // Green
-	gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // inicializo
+	double 	eval_min = gsl_vector_min (eval), /* lower bound */
+		eval_max = gsl_vector_max (eval); /* upper bound */	
 
-	double 	eval_min = gsl_vector_min (eval),
-		eval_max = gsl_vector_max (eval);	
-
-	for (w = eval_min; w < eval_max; w += 0.001){
+	for (w = eval_min; w < eval_max; w += 1e-3){
 		dos = 0;	
 		#pragma omp parallel num_threads(4)
 		{
@@ -197,16 +207,45 @@ double 	**M, // XYZ coordinates
 	}
 
 
-	fprintf(stderr,"Tamano matriz %d", N*SPIN*ORB);
+//	fprintf(stderr,"Tamano matriz %d", N*SPIN*ORB);
 	/* Green's function 
 	 *
 	 *            <i|n> <n|j>
 	 * Gij(E) = ----------------
 	 *           E - En + i*eta
 	 *
-	 * where i and j are atoms, and n is the state
+	 * where i and j are atoms, and n is the state.
+	 * NOTE: i and j 0-indexed list.
 	 */
-	
+
+	int list[]={0,1,2,5,6,7}; /* atoms to get conductance */	
+	int NL = (int) sizeof(list)/sizeof(list[0]);
+
+	gsl_matrix_complex * G = gsl_matrix_complex_alloc(NL*SPIN*ORB, NL*SPIN*ORB); // Green
+	gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // inicializo
+
+	for (int E = eval_min; E < eval_max; E += 1e-3){
+		gsl_complex g = GSL_COMPLEX_ZERO;	
+		for (int n=0; n<N*SPIN*ORB; n++) 	// states
+			for (i=0; i<NL; i++)		// atoms
+				for (j=0; j<NL; j++){	// atoms
+					for (k=0; k<SPIN*ORB; k++){	// orbitals
+						gsl_complex in = gsl_matrix_complex_get (evec, n, list[i]*SPIN*ORB+k);
+						gsl_complex nj = gsl_matrix_complex_get (evec, n, list[j]*SPIN*ORB+k);
+						double En = gsl_vector_get (eval ,n);
+						gsl_complex eta = gsl_complex_rect(0,5e-3); /* delta Dirac */
+						gsl_complex num = gsl_complex_mul(in, nj); /* num */
+						gsl_complex den = gsl_complex_add_real(eta, E - En); /* den */
+						gsl_complex Gij = gsl_complex_div(num,den);
+						g = gsl_complex_add(g, Gij);
+					}
+					if (gflag)
+						printf("%.3g %g \n", E, gsl_complex_abs(g));
+				}
+	}
+
+
+
 
 	
 	gsl_matrix_complex_free(G);
