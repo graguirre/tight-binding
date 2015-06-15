@@ -1,7 +1,7 @@
 # tight-binding
 Density of states using tight-binding model, programmed in C with OpenMP parallel implementation.
 
-Pending spin-orbit interaction.
+With spin-orbit interaction.
 
 Dependencies
 ------------
@@ -18,8 +18,23 @@ $ git clone https://github.com/graguirre/tight-binding.git
 
 Make and run
 ------------
+* Make
+
 $ make tight-binding
 
-Calculate DoS
-$ echo platino.inp | ./tight-binding -d
+* Calculate DoS 
 
+$ cat input/pt-pt.xyz | ./tight-binding -d
+
+* Calculate DoS with spin-orbit (parameter lambda=0.1) 
+
+$ cat input/pt-pt.xyz | ./tight-binding -d -l 0.1
+
+* Plot DOS, using gnuplot
+
+gnuplot> plot '<(cat input/cadenaPt.xyz | ./tight-binding -d)' u 1:2 w l
+
+* Plot Hamiltonian matrix, using gnuplot
+
+gnuplot> set view map
+gnuplot> plot '<(cat input/pt-pt.xyz | ./tight-binding -h)' matrix with image

@@ -67,6 +67,7 @@ void usage(){
 	printf("\t-d\tprint density of states\n");
 	printf("\t-e\tprint eigenvalues\n");
 	printf("\t-h\tprint hamiltonian matrix\n");
+	printf("\t-l float\tspin-orbit parameter\n");
 }
 
 
