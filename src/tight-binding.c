@@ -114,13 +114,16 @@ double 	**M, // XYZ coordinates
 	dos,
 	lambda=0;
 
-	while((c = getopt (argc, argv, "devhl:")) != -1){
+	while((c = getopt (argc, argv, "degvhl:")) != -1){
 		switch (c){
 			case 'd':
 				dflag = 1;
 				break;
 			case 'e':
 				eflag = 1;
+				break;
+			case 'g':
+				gflag = 1;
 				break;
 			case 'v':
 				vflag = 1;
@@ -206,8 +209,6 @@ double 	**M, // XYZ coordinates
 		}
 	}
 
-
-//	fprintf(stderr,"Tamano matriz %d", N*SPIN*ORB);
 	/* Green's function 
 	 *
 	 *            <i|n> <n|j>
@@ -222,30 +223,32 @@ double 	**M, // XYZ coordinates
 	int NL = (int) sizeof(list)/sizeof(list[0]);
 
 	gsl_matrix_complex * G = gsl_matrix_complex_alloc(NL*SPIN*ORB, NL*SPIN*ORB); // Green
-	gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // inicializo
 
-	for (int E = eval_min; E < eval_max; E += 1e-3){
-		gsl_complex g = GSL_COMPLEX_ZERO;	
+//	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
+	double E=0.0;
 		for (int n=0; n<N*SPIN*ORB; n++) 	// states
 			for (i=0; i<NL; i++)		// atoms
-				for (j=0; j<NL; j++){	// atoms
-					for (k=0; k<SPIN*ORB; k++){	// orbitals
-						gsl_complex in = gsl_matrix_complex_get (evec, n, list[i]*SPIN*ORB+k);
-						gsl_complex nj = gsl_matrix_complex_get (evec, n, list[j]*SPIN*ORB+k);
-						double En = gsl_vector_get (eval ,n);
-						gsl_complex eta = gsl_complex_rect(0,5e-3); /* delta Dirac */
-						gsl_complex num = gsl_complex_mul(in, nj); /* num */
-						gsl_complex den = gsl_complex_add_real(eta, E - En); /* den */
-						gsl_complex Gij = gsl_complex_div(num,den);
-						g = gsl_complex_add(g, Gij);
+				for (j=0; j<NL; j++)	// atoms
+					for (int k0=0; k0<SPIN*ORB; k0++){	// orbitals
+						#pragma omp parallel for
+						for (int k1=0; k1<SPIN*ORB; k1++){	// orbitals
+							gsl_complex in = gsl_matrix_complex_get (evec, n, list[i]*SPIN*ORB+k0);
+							gsl_complex nj = gsl_matrix_complex_get (evec, n, list[j]*SPIN*ORB+k1);
+							double En = gsl_vector_get (eval ,n);
+							gsl_complex eta = gsl_complex_rect(0,5e-3); /* delta Dirac */
+							gsl_complex num = gsl_complex_mul(in, gsl_complex_conjugate(nj)); /* num */
+							gsl_complex den = gsl_complex_add_real(eta, E - En); /* den */
+							gsl_complex Gij = gsl_complex_div(num,den);
+//							printf("%d %d\n", i*SPIN*ORB+k0, j*SPIN*ORB+k1);
+							gsl_matrix_complex_set(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1, Gij);
+						}
 					}
-					if (gflag)
-						printf("%.3g %g \n", E, gsl_complex_abs(g));
-				}
+	//}
+
+	if (gflag){
+		printComMat(G, NL*SPIN*ORB);
+		return 0;
 	}
-
-
-
 
 	
 	gsl_matrix_complex_free(G);
