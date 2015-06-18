@@ -234,6 +234,7 @@ double 	**M, // XYZ coordinates
 	gsl_matrix_complex * G = gsl_matrix_complex_alloc(NL*SPIN*ORB, NL*SPIN*ORB); // Green
 
 	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
+		gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // init
 //	double E=0.0;
 		for (int n=0; n<N*SPIN*ORB; n++) 	// states
 			for (i=0; i<NL; i++)		// atoms
@@ -248,15 +249,17 @@ double 	**M, // XYZ coordinates
 							gsl_complex num = gsl_complex_mul(in, gsl_complex_conjugate(nj)); /* num */
 							gsl_complex den = gsl_complex_add_real(eta, E - En); /* den */
 							gsl_complex Gij = gsl_complex_div(num,den);
-//							printf("%d %d\n", i*SPIN*ORB+k0, j*SPIN*ORB+k1);
-							gsl_matrix_complex_set(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1, Gij);
+						//	printf("%d %d\n", i*SPIN*ORB+k0, j*SPIN*ORB+k1);
+							gsl_complex tmp = gsl_matrix_complex_get(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1);
+							gsl_complex sum = gsl_complex_add(tmp, Gij);
+							gsl_matrix_complex_set(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1, sum);
 						}
 					}
-	//}
-
-	if (gflag){
-		printComMat(G, NL*SPIN*ORB);
-		return 0;
+		printf("%.3g %g\n",E, GSL_IMAG(gsl_matrix_complex_get(G, 0, 0)));
+		if (gflag){
+			printComMat(G, NL*SPIN*ORB);
+			return 0;
+		}
 	}
 
 	
