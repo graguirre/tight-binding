@@ -28,5 +28,8 @@ for ii=[min(e):0.001:max(e)]
 	i += 1;
 end
 
-plot(xe,-imag(DOS),'-');
+for i=[1:length(xe)]
+	printf("%.3f %f\n",xe(i),-imag(DOS(i))/pi)
+end
+%plot(xe,-imag(DOS),'-');
 
