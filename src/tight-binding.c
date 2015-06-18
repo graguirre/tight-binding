@@ -235,30 +235,30 @@ double 	**M, // XYZ coordinates
 
 	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
 		gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // init
-//	double E=0.0;
 		for (int n=0; n<N*SPIN*ORB; n++) 	// states
 			for (i=0; i<NL; i++)		// atoms
 				for (j=0; j<NL; j++)	// atoms
 					for (int k0=0; k0<SPIN*ORB; k0++){	// orbitals
-						#pragma omp parallel for
 						for (int k1=0; k1<SPIN*ORB; k1++){	// orbitals
 							gsl_complex in = gsl_matrix_complex_get (evec, n, list[i]*SPIN*ORB+k0);
 							gsl_complex nj = gsl_matrix_complex_get (evec, n, list[j]*SPIN*ORB+k1);
 							double En = gsl_vector_get (eval ,n);
-							gsl_complex eta = gsl_complex_rect(0,5e-3); /* delta Dirac */
+							gsl_complex eta = gsl_complex_rect(0,5e-3); /* delta */
 							gsl_complex num = gsl_complex_mul(in, gsl_complex_conjugate(nj)); /* num */
 							gsl_complex den = gsl_complex_add_real(eta, E - En); /* den */
 							gsl_complex Gij = gsl_complex_div(num,den);
-						//	printf("%d %d\n", i*SPIN*ORB+k0, j*SPIN*ORB+k1);
 							gsl_complex tmp = gsl_matrix_complex_get(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1);
 							gsl_complex sum = gsl_complex_add(tmp, Gij);
 							gsl_matrix_complex_set(G, i*SPIN*ORB+k0, j*SPIN*ORB+k1, sum);
 						}
 					}
-		printf("%.3g %g\n",E, GSL_IMAG(gsl_matrix_complex_get(G, 0, 0)));
+		dos = 0 ;
+		for(int i=0; i<NL*SPIN*ORB; i++)
+			dos += GSL_IMAG( gsl_matrix_complex_get(G, i, i) );
+		printf("%.3g %g\n", E, -dos/PI); 
+
 		if (gflag){
 			printComMat(G, NL*SPIN*ORB);
-			return 0;
 		}
 	}
 
