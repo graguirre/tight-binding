@@ -184,7 +184,16 @@ double 	**M, // XYZ coordinates
 
 
 
-	/* calculate DoS */
+	/* calculate DoS 
+	 *                 __  __
+	 *                 \   \       Hij  Hji
+	 * DOS(E) = -imag  /_  /_  ----------------
+	 *                  i   j   E - En + i*eta
+	 *
+	 * where H is the hamiltonian, and n is the state.
+	 * NOTE: i and j 0-indexed list. i*eta 
+	 */
+
 	double 	eval_min = gsl_vector_min (eval), /* lower bound */
 		eval_max = gsl_vector_max (eval); /* upper bound */	
 
@@ -224,8 +233,8 @@ double 	**M, // XYZ coordinates
 
 	gsl_matrix_complex * G = gsl_matrix_complex_alloc(NL*SPIN*ORB, NL*SPIN*ORB); // Green
 
-//	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
-	double E=0.0;
+	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
+//	double E=0.0;
 		for (int n=0; n<N*SPIN*ORB; n++) 	// states
 			for (i=0; i<NL; i++)		// atoms
 				for (j=0; j<NL; j++)	// atoms
