@@ -197,6 +197,7 @@ double 	**M, // XYZ coordinates
 	double 	eval_min = gsl_vector_min (eval), /* lower bound */
 		eval_max = gsl_vector_max (eval); /* upper bound */	
 
+	if (dflag)
 	for (w = eval_min; w < eval_max; w += 1e-3){
 		dos = 0;	
 		#pragma omp parallel num_threads(4)
@@ -233,6 +234,7 @@ double 	**M, // XYZ coordinates
 
 	gsl_matrix_complex * G = gsl_matrix_complex_alloc(NL*SPIN*ORB, NL*SPIN*ORB); // Green
 
+	if (gflag)
 	for (double E = eval_min; E < eval_max; E += 1e-3){ // energy
 		gsl_matrix_complex_set_all(G, GSL_COMPLEX_ZERO); // init
 		for (int n=0; n<N*SPIN*ORB; n++) 	// states
@@ -257,9 +259,7 @@ double 	**M, // XYZ coordinates
 			dos += GSL_IMAG( gsl_matrix_complex_get(G, i, i) );
 		printf("%.3g %g\n", E, -dos/PI); 
 
-		if (gflag){
-			printComMat(G, NL*SPIN*ORB);
-		}
+	//	printComMat(G, NL*SPIN*ORB);
 	}
 
 	
